@@ -1,0 +1,27 @@
+#!/usr/bin/expect --
+#
+#       This script is used for signing RPMs w/o password input.
+#       Author: Luc de Louw <luc@delouw.ch>, <ldelouw@redhat.com>
+#
+#       Keep this file safe (mode 500, owner should be the user that builds/signs the RPM)
+#       It contains the passphrase in clear text
+#
+#       The GPG key to be used must be defined in ~/.rpmmacros with the following entry:
+#       %_gpg_name someuser@somehost.tld
+#
+#       Set the password in the variable password in the line below
+set password "supersecret"
+#
+# Spawn the rpm comand and send the RPM filename as the first and only parameter
+spawn rpm --addsign [lindex $argv 0]
+
+# RPMs asks for the password, depending on your language setting this can be different:
+expect -exact "Enter pass phrase: "
+
+# Lets send the password and send a CR
+send -- "$password\r"
+
+# Waiting for RPM to return and pass exit code back to the shell
+expect eof
+catch wait result
+exit [lindex $result 3]
